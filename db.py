@@ -59,4 +59,3 @@ def create_tables(conn):
                 PRIMARY KEY (product_name, sale_month)
             )
         """)
-        conn.commit()

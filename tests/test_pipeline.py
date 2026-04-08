@@ -7,6 +7,7 @@ from db import get_pg_conn, create_tables
 def pg_conn():
     conn = get_pg_conn()
     create_tables(conn)
+    conn.commit()
     yield conn
     conn.close()
 
