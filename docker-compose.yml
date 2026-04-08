@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:16
+    restart: unless-stopped
     container_name: basket_craft_db
     environment:
       POSTGRES_DB: basket_craft
