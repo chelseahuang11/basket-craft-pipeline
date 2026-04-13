@@ -208,3 +208,7 @@ __marimo__/
 
 # Git worktrees
 .worktrees/
+
+# Claude Code and Superpowers
+.claude/
+.superpowers/
