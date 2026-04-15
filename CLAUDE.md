@@ -28,6 +28,12 @@ docker compose down
 # Load all 8 raw tables from RDS into Snowflake
 .venv/Scripts/python.exe load_snowflake.py
 
+# Run dbt (uses run_dbt.py wrapper to inject .env credentials)
+.venv/Scripts/python.exe run_dbt.py run        # build all models in Snowflake
+.venv/Scripts/python.exe run_dbt.py test       # run data tests
+.venv/Scripts/python.exe run_dbt.py docs generate  # generate lineage graph
+.venv/Scripts/python.exe run_dbt.py docs serve     # serve docs at localhost:8080
+
 # Run all tests
 .venv/Scripts/python.exe -m pytest tests/test_pipeline.py -v
 
@@ -49,7 +55,15 @@ Shared connection and schema logic lives in **`db.py`** (`get_pg_conn()`, `creat
 3. **`extract_rds.py`** — loads all 8 raw Basket Craft tables from MySQL into AWS RDS as-is (no transformations). Resumable: skips tables whose row count already matches MySQL.
 
 **Snowflake pipeline (Session 03):**
-4. **`load_snowflake.py`** — reads all 8 raw tables from RDS and loads them into `basket_craft.raw` in Snowflake using `write_pandas`. Truncates each target table before loading (idempotent). All column names are lowercase. Credentials from `.env` (`SNOWFLAKE_*` variables).
+4. **`load_snowflake.py`** — reads all 8 raw tables from RDS and loads them into `basket_craft.raw` in Snowflake using `write_pandas`. Truncates each target table before loading (idempotent). All column names are uppercased (Snowflake native casing). Credentials from `.env` (`SNOWFLAKE_*` variables).
+
+**dbt project (Session 04):**
+5. **`basket_craft/`** — dbt Core project that transforms raw Snowflake tables into a star schema in `basket_craft.analytics`.
+   - **Staging models** (`models/staging/`): one model per raw source — `stg_orders`, `stg_order_items`, `stg_products`, `stg_customers`. Each renames/casts one source table; no JOINs or calculations. Materialized as tables.
+   - **Mart models** (`models/marts/`): `fct_order_items` (fact table, order-line grain, 40K rows), `dim_customers` (31K rows), `dim_products` (4 rows), `dim_date` (3,653-day spine from 2020).
+   - **Tests** (`models/marts/_schema.yml`): `unique` + `not_null` on `fct_order_items.order_item_id`.
+   - **`~/.dbt/profiles.yml`** lives outside the repo and reads all credentials from `.env` via `env_var()`. Never commit it.
+   - **`run_dbt.py`** — wrapper script that injects `.env` into the shell environment before calling dbt (dbt does not auto-load `.env`).
 
 ## Database
 

@@ -47,9 +47,10 @@ def load_table(rds_conn, sf_conn, table):
     # Read full table from RDS
     df = pd.read_sql(f'SELECT * FROM {table}', rds_conn)
 
-    # Lowercase all column names — Snowflake uppercases unquoted identifiers
-    # by default; keeping everything lowercase prevents dbt failures in Session 04
-    df.columns = [c.lower() for c in df.columns]
+    # Uppercase all column names so write_pandas creates them as native Snowflake
+    # uppercase identifiers (unquoted). Lowercase columns would be stored quoted
+    # ("order_item_id"), making them case-sensitive and unreachable by dbt's SQL.
+    df.columns = [c.upper() for c in df.columns]
 
     # Truncate target table in Snowflake before loading (idempotency)
     with sf_conn.cursor() as cur:

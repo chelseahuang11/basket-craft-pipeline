@@ -3,3 +3,4 @@ psycopg2-binary
 python-dotenv
 pytest
 snowflake-connector-python[pandas]
+dbt-snowflake

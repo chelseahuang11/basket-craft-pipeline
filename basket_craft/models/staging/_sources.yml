@@ -1,0 +1,18 @@
+version: 2
+
+sources:
+  - name: raw
+    database: basket_craft
+    schema: raw
+    description: "Raw Basket Craft tables loaded from AWS RDS in Session 03."
+    tables:
+      - name: orders
+        description: "One row per order."
+      - name: order_items
+        description: "One row per line item within an order."
+      - name: products
+        description: "Product catalog."
+      - name: customers
+        description: "Customer master."
+      - name: users
+        description: "Raw user accounts table (referenced by stg_customers)."
