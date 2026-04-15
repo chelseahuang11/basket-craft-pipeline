@@ -25,6 +25,9 @@ docker compose down
 # Load all 8 raw tables into AWS RDS
 .venv/Scripts/python.exe extract_rds.py
 
+# Load all 8 raw tables from RDS into Snowflake
+.venv/Scripts/python.exe load_snowflake.py
+
 # Run all tests
 .venv/Scripts/python.exe -m pytest tests/test_pipeline.py -v
 
@@ -45,11 +48,15 @@ Shared connection and schema logic lives in **`db.py`** (`get_pg_conn()`, `creat
 **Cloud pipeline (Session 02):**
 3. **`extract_rds.py`** — loads all 8 raw Basket Craft tables from MySQL into AWS RDS as-is (no transformations). Resumable: skips tables whose row count already matches MySQL.
 
+**Snowflake pipeline (Session 03):**
+4. **`load_snowflake.py`** — reads all 8 raw tables from RDS and loads them into `basket_craft.raw` in Snowflake using `write_pandas`. Truncates each target table before loading (idempotent). All column names are lowercase. Credentials from `.env` (`SNOWFLAKE_*` variables).
+
 ## Database
 
 - **Source:** MySQL at `db.isba.co:3306`, database `basket_craft`
 - **Local destination:** Postgres 16 in Docker, port `5433`, database `basket_craft`, container `basket_craft_db`
 - **Cloud destination:** AWS RDS PostgreSQL at `basket-craft-db.cqfauycsyk1q.us-east-1.rds.amazonaws.com:5432`, database `basket_craft`, user `student`
+- **Snowflake destination:** `basket_craft.raw` schema, account `LIC09859.us-east-1`, warehouse `basket_craft_wh`
 - **Local connection string:** `postgresql://postgres:postgres@localhost:5433/basket_craft`
 - **RDS connection string:** `postgresql://student:<password>@basket-craft-db.cqfauycsyk1q.us-east-1.rds.amazonaws.com:5432/basket_craft` (password in `.env`)
 
