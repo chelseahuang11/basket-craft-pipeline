@@ -79,7 +79,35 @@ Transform complete.
 
 7 integration tests covering table creation, staging loads, aggregation output, column structure, and pipeline idempotency. Tests hit live databases — the full suite takes ~4 minutes.
 
-## Querying the Results
+## AWS RDS (Session 02)
+
+The raw Basket Craft tables are also loaded into a cloud PostgreSQL database on AWS RDS.
+
+- **Endpoint:** `basket-craft-db.cqfauycsyk1q.us-east-1.rds.amazonaws.com`
+- **Port:** `5432`
+- **Database:** `basket_craft`
+- **Username:** `student`
+
+To load all 8 raw tables from MySQL into RDS:
+
+```bash
+.venv/Scripts/python.exe extract_rds.py
+```
+
+The script is resumable — if interrupted, re-running it skips tables that already have the correct row count.
+
+| Table | Rows |
+|---|---|
+| employees | 20 |
+| order_item_refunds | 1,731 |
+| order_items | 40,025 |
+| orders | 32,313 |
+| products | 4 |
+| users | 31,696 |
+| website_pageviews | 1,188,124 |
+| website_sessions | 472,871 |
+
+## Querying the Local Results
 
 ```bash
 docker exec -it basket_craft_db psql -U postgres -d basket_craft

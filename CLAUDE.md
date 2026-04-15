@@ -14,39 +14,44 @@ Use a Python virtual environment to manage dependencies. The venv is at `.venv/`
 ## Common Commands
 
 ```bash
-# Start/stop Postgres container
+# Start/stop local Postgres container
 docker compose up -d
 docker compose down
 
-# Run the full pipeline
+# Run the local pipeline (MySQL → Docker Postgres → monthly_sales_summary)
 .venv/Scripts/python.exe extract.py
 .venv/Scripts/python.exe transform.py
+
+# Load all 8 raw tables into AWS RDS
+.venv/Scripts/python.exe extract_rds.py
 
 # Run all tests
 .venv/Scripts/python.exe -m pytest tests/test_pipeline.py -v
 
-# Run a single test
-.venv/Scripts/python.exe -m pytest tests/test_pipeline.py::test_staging_tables_exist -v
-
-# Connect to Postgres via psql
+# Connect to local Postgres via psql
 docker exec -it basket_craft_db psql -U postgres -d basket_craft
 ```
 
 ## Architecture
 
-This is a two-step ETL pipeline:
+This project has two destinations:
 
-1. **`extract.py`** — connects to the remote MySQL source (`db.isba.co/basket_craft`), reads `orders`, `order_items`, and `products`, then TRUNCATEs and reloads three Postgres staging tables (`stg_orders`, `stg_order_items`, `stg_products`).
-2. **`transform.py`** — executes `aggregate.sql` against Postgres to populate `monthly_sales_summary` (revenue, order count, avg order value grouped by product and month).
+**Local pipeline (Session 01):**
+1. **`extract.py`** — connects to MySQL (`db.isba.co/basket_craft`), reads `orders`, `order_items`, and `products`, reloads three Postgres staging tables (`stg_orders`, `stg_order_items`, `stg_products`).
+2. **`transform.py`** — executes `aggregate.sql` against local Postgres to populate `monthly_sales_summary`.
 
-Shared connection and schema logic lives in **`db.py`** (`get_pg_conn()`, `create_tables()`). Both scripts import from it.
+Shared connection and schema logic lives in **`db.py`** (`get_pg_conn()`, `create_tables()`).
+
+**Cloud pipeline (Session 02):**
+3. **`extract_rds.py`** — loads all 8 raw Basket Craft tables from MySQL into AWS RDS as-is (no transformations). Resumable: skips tables whose row count already matches MySQL.
 
 ## Database
 
 - **Source:** MySQL at `db.isba.co:3306`, database `basket_craft`
-- **Destination:** Postgres 16 in Docker, port `5433` (avoids collision with other local Postgres instances on 5432), database `basket_craft`
-- **Container name:** `basket_craft_db`
-- **Connection string:** `postgresql://postgres:postgres@localhost:5433/basket_craft`
+- **Local destination:** Postgres 16 in Docker, port `5433`, database `basket_craft`, container `basket_craft_db`
+- **Cloud destination:** AWS RDS PostgreSQL at `basket-craft-db.cqfauycsyk1q.us-east-1.rds.amazonaws.com:5432`, database `basket_craft`, user `student`
+- **Local connection string:** `postgresql://postgres:postgres@localhost:5433/basket_craft`
+- **RDS connection string:** `postgresql://student:<password>@basket-craft-db.cqfauycsyk1q.us-east-1.rds.amazonaws.com:5432/basket_craft` (password in `.env`)
 
 ## Credentials
 
