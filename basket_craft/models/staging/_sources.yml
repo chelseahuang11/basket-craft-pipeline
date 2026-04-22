@@ -1,6 +1,6 @@
 version: 2
 
-sources:
+2:
   - name: raw
     database: basket_craft
     schema: raw

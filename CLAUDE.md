@@ -70,7 +70,7 @@ Shared connection and schema logic lives in **`db.py`** (`get_pg_conn()`, `creat
 - **Source:** MySQL at `db.isba.co:3306`, database `basket_craft`
 - **Local destination:** Postgres 16 in Docker, port `5433`, database `basket_craft`, container `basket_craft_db`
 - **Cloud destination:** AWS RDS PostgreSQL at `basket-craft-db.cqfauycsyk1q.us-east-1.rds.amazonaws.com:5432`, database `basket_craft`, user `student`
-- **Snowflake destination:** `basket_craft.raw` schema, account `LIC09859.us-east-1`, warehouse `basket_craft_wh`
+- **Snowflake destination:** `basket_craft.raw` schema (raw) and `basket_craft.analytics` schema (dbt models), account `RSMLWYI-DUC27378`, warehouse `basket_craft_wh`
 - **Local connection string:** `postgresql://postgres:postgres@localhost:5433/basket_craft`
 - **RDS connection string:** `postgresql://student:<password>@basket-craft-db.cqfauycsyk1q.us-east-1.rds.amazonaws.com:5432/basket_craft` (password in `.env`)
 

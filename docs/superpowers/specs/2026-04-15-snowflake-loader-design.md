@@ -16,7 +16,7 @@ Write a Python script (`load_snowflake.py`) that reads all 8 raw Basket Craft ta
 
 ```
 RDS PostgreSQL (psycopg2 + pandas)
-  └─► pandas DataFrame (columns lowercased)
+  └─► pandas DataFrame (columns uppercased)
         └─► write_pandas (Snowflake COPY INTO)
               └─► basket_craft.raw.<table_name>
 ```
@@ -35,7 +35,7 @@ Full table loaded into a pandas DataFrame before writing to Snowflake. The large
 TRUNCATE each Snowflake target table before loading. Running the script twice produces the same result. Append mode is not used — truncate-and-reload is simpler and safer.
 
 ### Column name casing
-All column names are lowercased (`df.columns = [c.lower() for c in df.columns]`) before passing to `write_pandas`. Snowflake uppercases unquoted identifiers by default; keeping everything lowercase avoids case-sensitivity failures in dbt (Session 04).
+All column names are uppercased (`df.columns = [c.upper() for c in df.columns]`) before passing to `write_pandas`. Snowflake stores unquoted identifiers in uppercase internally. If columns were passed in lowercase, `write_pandas` would quote them (e.g., `"order_item_id"`), making them case-sensitive and unreachable by dbt SQL that references them without quotes.
 
 ### Credentials
 All credentials read from `.env` via `python-dotenv`. No hardcoded values. Variables used:
